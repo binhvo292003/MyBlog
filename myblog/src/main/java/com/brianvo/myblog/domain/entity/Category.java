@@ -24,16 +24,7 @@ public class Category {
     private String name;
 
     @OneToMany(mappedBy = "category")
-    private List<Category> post = new ArrayList<>();
-
-    @ManyToMany
-    @JoinTable(
-            name =  "post_tags",
-            joinColumns = @JoinColumn(name="post_id"),
-            inverseJoinColumns = @JoinColumn(name="tag_id")
-    )
-    private Set<Tag> tags = new HashSet<>();
-
+    private List<Post> posts = new ArrayList<>();
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
