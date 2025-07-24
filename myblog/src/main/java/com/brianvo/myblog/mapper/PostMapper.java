@@ -1,5 +1,6 @@
 package com.brianvo.myblog.mapper;
 
+import com.brianvo.myblog.domain.dto.request.CreatePostRequest;
 import com.brianvo.myblog.domain.dto.response.PostResponse;
 import com.brianvo.myblog.domain.entity.Post;
 import org.mapstruct.Mapper;
