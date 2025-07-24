@@ -119,6 +119,13 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(existingPost);
     }
 
+    @Override
+    public void deletePost(UUID id) {
+        Post post = getPostById(id);
+
+        postRepository.delete(post);
+    }
+
     private Integer calculateReadingTime(String content) {
         if (content == null || content.isEmpty()) {
             return 0;
