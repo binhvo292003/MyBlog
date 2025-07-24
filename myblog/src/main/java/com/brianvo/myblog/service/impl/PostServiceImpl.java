@@ -2,6 +2,7 @@ package com.brianvo.myblog.service.impl;
 
 import com.brianvo.myblog.domain.PostStatus;
 import com.brianvo.myblog.domain.dto.request.CreatePostRequest;
+import com.brianvo.myblog.domain.dto.request.UpdatePostRequest;
 import com.brianvo.myblog.domain.entity.Category;
 import com.brianvo.myblog.domain.entity.Post;
 import com.brianvo.myblog.domain.entity.Tag;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +62,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public Post getPostById(UUID id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + id));
+    }
+
+    @Override
     public List<Post> getDraftsPosts(User user) {
         return postRepository.findAllByAuthorAndStatus(user, PostStatus.DRAFT);
     }
@@ -73,13 +82,41 @@ public class PostServiceImpl implements PostService {
         newPost.setAuthor(user);
         newPost.setReadingTime(calculateReadingTime(createPostRequest.getContent()));
 
-        Category category =categoryService.getCategoryById(createPostRequest.getCategoryId());
+        Category category = categoryService.getCategoryById(createPostRequest.getCategoryId());
         newPost.setCategory(category);
 
         List<Tag> tags = tagService.getTagsByIds(createPostRequest.getTagIds());
         newPost.setTags(new HashSet<>(tags));
 
         return postRepository.save(newPost);
+    }
+
+    @Override
+    @Transactional
+    public Post updatePost(UUID id, UpdatePostRequest updatePostRequest) {
+        Post existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + id));
+
+        existingPost.setTitle(updatePostRequest.getTitle());
+        String content = updatePostRequest.getContent();
+        existingPost.setContent(content);
+        existingPost.setStatus(updatePostRequest.getStatus());
+        existingPost.setReadingTime(calculateReadingTime(content));
+
+        UUID updatePostRequestCategoryId = updatePostRequest.getCategoryId();
+        if (!existingPost.getCategory().getId().equals(updatePostRequestCategoryId)) {
+            Category category = categoryService.getCategoryById(updatePostRequestCategoryId);
+            existingPost.setCategory(category);
+        }
+
+        Set<UUID> existingTagId = existingPost.getTags().stream().map(Tag::getId).collect(Collectors.toSet());
+        Set<UUID> updatePostRequestTagIds = updatePostRequest.getTagIds();
+        if (!existingTagId.equals(updatePostRequestTagIds)) {
+            List<Tag> tags = tagService.getTagsByIds(updatePostRequestTagIds);
+            existingPost.setTags(new HashSet<>(tags));
+        }
+
+        return postRepository.save(existingPost);
     }
 
     private Integer calculateReadingTime(String content) {
