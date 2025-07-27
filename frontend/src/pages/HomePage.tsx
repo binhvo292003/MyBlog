@@ -37,7 +37,7 @@ const HomePage: React.FC = () => {
         setCategories(categoriesResponse);
         setTags(tagsResponse);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load content. Please try again later.');
       } finally {
         setLoading(false);
@@ -105,7 +105,7 @@ const HomePage: React.FC = () => {
       </Card>
 
       <PostList
-        posts={posts}
+        posts={posts ? { content: posts, totalPages: 1 } : null}
         loading={loading}
         error={error}
         page={page}
